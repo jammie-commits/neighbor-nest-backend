@@ -11,7 +11,7 @@ from config import app, db, api
 from resources import Register, Login, EventResource, NewsResource, SendEmail
 
 # Add your model imports
-
+from models import User, Event, News, Neighborhood, Admin, SuperAdmin, Notification, Dashboard
 
 # Views go here!
 
