@@ -8,6 +8,8 @@ from flask_restful import Resource
 
 # Local imports
 from config import app, db, api
+from resources import Register, Login, EventResource, NewsResource, SendEmail
+
 # Add your model imports
 
 
