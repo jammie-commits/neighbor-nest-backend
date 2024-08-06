@@ -19,6 +19,12 @@ from models import User, Event, News, Neighborhood, Admin, SuperAdmin, Notificat
 def index():
     return '<h1>Project Server</h1>'
 
+# Add your routes
+api.add_resource(Register, '/register')
+api.add_resource(Login, '/login')
+api.add_resource(EventResource, '/events')
+api.add_resource(NewsResource, '/news')
+api.add_resource(SendEmail, '/send-email')
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
