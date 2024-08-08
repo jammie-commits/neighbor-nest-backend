@@ -5,6 +5,10 @@
 # Remote library imports
 from flask import request
 from flask_restful import Resource
+from flask_jwt_extended import JWTManager, create_access_token
+from werkzeug.security import generate_password_hash, check_password_hash
+import cloudinary.uploader
+
 
 # Local imports
 from config import app, db, api
