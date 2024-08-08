@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify
+from sqlalchemy import MetaData
+
 
 from sqlalchemy_serializer import SerializerMixin
-from sqlalchemy.ext.associationproxy import association_proxy
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_serializer import SerializerMixin
@@ -11,7 +12,7 @@ from config import db
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'  # Update with your database URI
-db = SQLAlchemy(app)
+db = SQLAlchemy(app, metadata=MetaData())
 
 # Models 
 class User(db.Model, SerializerMixin):
@@ -33,6 +34,9 @@ class User(db.Model, SerializerMixin):
     events = db.relationship('Event', backref='organizer', lazy=True)
     notifications = db.relationship('Notification', backref='recipient', lazy=True)
 
+    def __repr__(self):
+        return f"<User {self.user_id}, {self.name}, {self.email}, {self.is_admin}, {self.is_super_admin}, {self.neighborhood_id}, {self.created_at}, {self.updated_at}, {self.profile_picture_url}, {self.password}, {self.posts}, {self.events}, {self.notifications}>"
+
 class Neighborhood(db.Model, SerializerMixin):
     __tablename__ = 'neighborhoods'
     neighborhood_id = db.Column(db.Integer, primary_key=True)
@@ -45,6 +49,9 @@ class Neighborhood(db.Model, SerializerMixin):
     users = db.relationship('User', backref='neighborhood', lazy=True)
     events = db.relationship('Event', backref='neighborhood', lazy=True)
     news = db.relationship('News', backref='neighborhood', lazy=True)
+
+    def __repr__(self):
+        return f"<Neighborhood {self.name}, {self.description}, {self.created_at}, {self.updated_at}, {self.users}, {self.events}, {self.news}>"
 
 class Event(db.Model, SerializerMixin):
     __tablename__ = 'events'
@@ -64,6 +71,9 @@ class Event(db.Model, SerializerMixin):
     # Relationships
     notifications = db.relationship('Notification', backref='event', lazy=True)
 
+    def __repr__(self):
+        return f"<Event {self.title}, {self.description}, {self.date}, {self.location}, {self.image_url}, {self.status}, {self.user_id}, {self.neighborhood_id}, {self.admin_approved}>"
+
 class News(db.Model, SerializerMixin):
     __tablename__ = 'news'
     news_id = db.Column(db.Integer, primary_key=True)
@@ -80,6 +90,9 @@ class News(db.Model, SerializerMixin):
     # Relationships
     notifications = db.relationship('Notification', backref='news', lazy=True)
 
+    def __repr__(self):
+        return f"<News {self.title}, {self.content}, {self.image_url}, {self.status}, {self.user_id}, {self.neighborhood_id}, {self.admin_approved}>"
+
 class Admin(db.Model, SerializerMixin):
     __tablename__ = 'admins'
     admin_id = db.Column(db.Integer, primary_key=True)
@@ -92,6 +105,9 @@ class Admin(db.Model, SerializerMixin):
     user = db.relationship('User', backref='admin', uselist=False)
     neighborhood = db.relationship('Neighborhood', backref='admins', lazy=True)
 
+    def __repr__(self):
+        return f"<Admin {self.user_id}, {self.neighborhood_id}, {self.created_at}, {self.updated_at}>"
+
 class SuperAdmin(db.Model, SerializerMixin):
     __tablename__ = 'super_admins'
     super_admin_id = db.Column(db.Integer, primary_key=True)
@@ -101,6 +117,9 @@ class SuperAdmin(db.Model, SerializerMixin):
     
     # Relationships
     user = db.relationship('User', backref='super_admin', uselist=False)
+
+    def __repr__(self):
+        return f"<SuperAdmin {self.user_id}, {self.created_at}, {self.updated_at}>"
 
 class Notification(db.Model, SerializerMixin):
     __tablename__ = 'notifications'
@@ -117,6 +136,9 @@ class Notification(db.Model, SerializerMixin):
     event = db.relationship('Event', backref='notifications')
     news = db.relationship('News', backref='notifications')
 
+    def __repr__(self):
+        return f"<Notification {self.content}, {self.type}, {self.created_at}, {self.user_id}, {self.event_id}, {self.news_id}>"
+
 class Dashboard(db.Model, SerializerMixin):
     __tablename__ = 'dashboards'
     dashboard_id = db.Column(db.Integer, primary_key=True)
@@ -125,5 +147,8 @@ class Dashboard(db.Model, SerializerMixin):
     
     # Relationships
     user = db.relationship('User', backref='dashboard', uselist=False)
+
+    def __repr__(self):
+        return f"<Dashboard {self.user_id}, {self.created_at}>"
     
     
