@@ -11,8 +11,10 @@ import cloudinary.uploader
 
 
 # Local imports
-from config import app, db, api
-from resources import Register, Login, EventResource, NewsResource, SendEmail
+from config import app, db
+from models import User, Event, News
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 # Add your model imports
 from models import User, Event, News, Neighborhood, Admin, SuperAdmin, Notification, Dashboard
