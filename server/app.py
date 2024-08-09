@@ -166,27 +166,55 @@ class Events(Resource):
         events = Event.query.all()
         return jsonify([event.to_dict() for event in events]), 200
 
-# Get all neighborhoods
-@app.route('/neighborhoods', methods=['GET'])
-@jwt_required()
-def get_neighborhoods():
-    neighborhoods = Neighborhood.query.all()
-    return jsonify([neighborhood.to_dict() for neighborhood in neighborhoods]), 200
+class EventByID(Resource):
+    @jwt_required()
+    def put(self, event_id):
+        data = request.get_json()
+        event = Event.query.get(event_id)
+        if event:
+            event.title = data.get('title', event.title)
+            event.description = data.get('description', event.description)
+            event.date = data.get('date', event.date)
+            event.location = data.get('location', event.location)
+            event.image_url = data.get('image_url', event.image_url)
+            event.status = data.get('status', event.status)
+            event.admin_approved = data.get('admin_approved', event.admin_approved)
+            event.updated_at = datetime.utcnow()
+            db.session.commit()
+            return jsonify({"message": "Event updated successfully"}), 200
+        else:
+            return jsonify({"message": "Event not found"}), 404
 
-# Update neighborhood by ID
-@app.route('/neighborhoods/<int:neighborhood_id>', methods=['PUT'])
-@jwt_required()
-def update_neighborhood(neighborhood_id):
-    data = request.get_json()
-    neighborhood = Neighborhood.query.get(neighborhood_id)
-    if neighborhood:
-        neighborhood.name = data.get('name', neighborhood.name)
-        neighborhood.description = data.get('description', neighborhood.description)
-        neighborhood.updated_at = datetime.utcnow()
+    @jwt_required()
+    def delete(self, event_id):
+        event = Event.query.get(event_id)
+        if event:
+            db.session.delete(event)
+            db.session.commit()
+            return jsonify({"message": "Event deleted successfully"}), 200
+        else:
+            return jsonify({"message": "Event not found"}), 404
+
+class NewsResource(Resource):
+    @jwt_required()
+    def post(self):
+        data = request.get_json()
+        new_news = News(
+            title=data['title'],
+            content=data['content'],
+            image_url=data.get('image_url'),
+            status=data['status'],
+            user_id=data['user_id'],
+            neighborhood_id=data['neighborhood_id']
+        )
+        db.session.add(new_news)
         db.session.commit()
-        return jsonify({"message": "Neighborhood updated successfully"}), 200
-    else:
-        return jsonify({"message": "Neighborhood not found"}), 404
+        return jsonify({"message": "News created successfully"}), 201
+
+    @jwt_required()
+    def get(self):
+        news_items = News.query.all()
+        return jsonify([news.to_dict() for news in news_items]), 200
 
 # Delete neighborhood by ID
 @app.route('/neighborhoods/<int:neighborhood_id>', methods=['DELETE'])
