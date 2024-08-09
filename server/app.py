@@ -102,50 +102,69 @@ class UserByID(Resource):
             return jsonify({"message": "User deleted successfully"}), 200
         else:
             return jsonify({"message": "User not found"}), 404
-
-# Update user by ID
-@app.route('/users/<int:user_id>', methods=['PUT'])
-@jwt_required()
-def update_user(user_id):
-    data = request.get_json()
-    user = User.query.get(user_id)
-    if user:
-        user.name = data.get('name', user.name)
-        user.email = data.get('email', user.email)
-        user.profile_picture_url = data.get('profile_picture_url', user.profile_picture_url)
-        user.is_admin = data.get('is_admin', user.is_admin)
-        user.is_super_admin = data.get('is_super_admin', user.is_super_admin)
-        user.neighborhood_id = data.get('neighborhood_id', user.neighborhood_id)
-        user.updated_at = datetime.utcnow()
+        
+class Neighborhoods(Resource):
+    @jwt_required()
+    def post(self):
+        data = request.get_json()
+        new_neighborhood = Neighborhood(
+            name=data['name'],
+            description=data.get('description')
+        )
+        db.session.add(new_neighborhood)
         db.session.commit()
-        return jsonify({"message": "User updated successfully"}), 200
-    else:
-        return jsonify({"message": "User not found"}), 404
+        return jsonify({"message": "Neighborhood created successfully"}), 201
 
-# Delete user by ID
-@app.route('/users/<int:user_id>', methods=['DELETE'])
-@jwt_required()
-def delete_user(user_id):
-    user = User.query.get(user_id)
-    if user:
-        db.session.delete(user)
+    @jwt_required()
+    def get(self):
+        neighborhoods = Neighborhood.query.all()
+        return jsonify([neighborhood.to_dict() for neighborhood in neighborhoods]), 200
+    
+class NeighborhoodByID(Resource):
+    @jwt_required()
+    def put(self, neighborhood_id):
+        data = request.get_json()
+        neighborhood = Neighborhood.query.get(neighborhood_id)
+        if neighborhood:
+            neighborhood.name = data.get('name', neighborhood.name)
+            neighborhood.description = data.get('description', neighborhood.description)
+            neighborhood.updated_at = datetime.utcnow()
+            db.session.commit()
+            return jsonify({"message": "Neighborhood updated successfully"}), 200
+        else:
+            return jsonify({"message": "Neighborhood not found"}), 404
+
+    @jwt_required()
+    def delete(self, neighborhood_id):
+        neighborhood = Neighborhood.query.get(neighborhood_id)
+        if neighborhood:
+            db.session.delete(neighborhood)
+            db.session.commit()
+            return jsonify({"message": "Neighborhood deleted successfully"}), 200
+        else:
+            return jsonify({"message": "Neighborhood not found"}), 404
+class Events(Resource):
+    @jwt_required()
+    def post(self):
+        data = request.get_json()
+        new_event = Event(
+            title=data['title'],
+            description=data['description'],
+            date=data['date'],
+            location=data['location'],
+            image_url=data.get('image_url'),
+            status=data['status'],
+            user_id=data['user_id'],
+            neighborhood_id=data['neighborhood_id']
+        )
+        db.session.add(new_event)
         db.session.commit()
-        return jsonify({"message": "User deleted successfully"}), 200
-    else:
-        return jsonify({"message": "User not found"}), 404
+        return jsonify({"message": "Event created successfully"}), 201
 
-# Create a neighborhood
-@app.route('/neighborhoods', methods=['POST'])
-@jwt_required()
-def create_neighborhood():
-    data = request.get_json()
-    new_neighborhood = Neighborhood(
-        name=data['name'],
-        description=data.get('description')
-    )
-    db.session.add(new_neighborhood)
-    db.session.commit()
-    return jsonify({"message": "Neighborhood created successfully"}), 201
+    @jwt_required()
+    def get(self):
+        events = Event.query.all()
+        return jsonify([event.to_dict() for event in events]), 200
 
 # Get all neighborhoods
 @app.route('/neighborhoods', methods=['GET'])
