@@ -50,3 +50,22 @@ def create_fake_data():
             db.session.add(event)
 
         db.session.commit()
+        
+         # Create fake news
+        for _ in range(10):
+            news_item = News(
+                title=fake.sentence(nb_words=6),
+                content=fake.text(max_nb_chars=1000),
+                image_url=fake.image_url(),
+                status=fake.random_element(elements=("published", "draft")),
+                user_id=fake.random_int(min=1, max=10),
+                neighborhood_id=fake.random_int(min=1, max=5)
+            )
+            db.session.add(news_item)
+
+        db.session.commit()
+
+        print("Fake data created successfully!")
+
+if __name__ == "__main__":
+    create_fake_data()
