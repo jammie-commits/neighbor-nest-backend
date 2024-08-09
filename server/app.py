@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity 
+from flask_restful import Api, Resource
 from models import db, User, Neighborhood, Event, News, Admin, SuperAdmin, Notification, Dashboard
 
 app = Flask(__name__)
@@ -15,28 +16,30 @@ app.config['JWT_SECRET_KEY'] = 'your_jwt_secret_key'
 db.init_app(app)
 jwt = JWTManager(app)
 migrate = Migrate(app, db)
+api = Api(app)
 
-@app.route('/')
-def home():
-    return jsonify({"message": "Welcome to Neighbornest"}), 200
+class Home(Resource):
+    def get(self):
+        return jsonify({"message": "Welcome to Neighbornest"}), 200
+    
 # User Registration
-@app.route('/register', methods=['POST'])
-def register():
-    data = request.get_json()
-    hashed_password = generate_password_hash(data['password'], method='sha256')
-    new_user = User(
-        name=data['name'],
-        email=data['email'],
-        password=hashed_password,
-        neighborhood_id=data.get('neighborhood_id')
-    )
-    try:
-        db.session.add(new_user)
-        db.session.commit()
-        return jsonify({"message": "User registered successfully"}), 201
-    except IntegrityError:
-        db.session.rollback()
-        return jsonify({"message": "Email already exists"}), 409
+class UserRegister(Resource):
+    def post(self):
+        data = request.get_json()
+        hashed_password = generate_password_hash(data['password'], method='sha256')
+        new_user = User(
+            name=data['name'],
+            email=data['email'],
+            password=hashed_password,
+            neighborhood_id=data.get('neighborhood_id')
+        )
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+            return jsonify({"message": "User registered successfully"}), 201
+        except IntegrityError:
+            db.session.rollback()
+            return jsonify({"message": "Email already exists"}), 409
 
 # User Login
 @app.route('/login', methods=['POST'])
