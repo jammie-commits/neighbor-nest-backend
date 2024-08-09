@@ -216,129 +216,32 @@ class NewsResource(Resource):
         news_items = News.query.all()
         return jsonify([news.to_dict() for news in news_items]), 200
 
-# Delete neighborhood by ID
-@app.route('/neighborhoods/<int:neighborhood_id>', methods=['DELETE'])
-@jwt_required()
-def delete_neighborhood(neighborhood_id):
-    neighborhood = Neighborhood.query.get(neighborhood_id)
-    if neighborhood:
-        db.session.delete(neighborhood)
-        db.session.commit()
-        return jsonify({"message": "Neighborhood deleted successfully"}), 200
-    else:
-        return jsonify({"message": "Neighborhood not found"}), 404
+class NewsByID(Resource):
+    @jwt_required()
+    def put(self, news_id):
+        data = request.get_json()
+        news = News.query.get(news_id)
+        if news:
+            news.title = data.get('title', news.title)
+            news.content = data.get('content', news.content)
+            news.image_url = data.get('image_url', news.image_url)
+            news.status = data.get('status', news.status)
+            news.admin_approved = data.get('admin_approved', news.admin_approved)
+            news.updated_at = datetime.utcnow()
+            db.session.commit()
+            return jsonify({"message": "News updated successfully"}), 200
+        else:
+            return jsonify({"message": "News not found"}), 404
 
-# Create an event
-@app.route('/events', methods=['POST'])
-@jwt_required()
-def create_event():
-    data = request.get_json()
-    new_event = Event(
-        title=data['title'],
-        description=data['description'],
-        date=data['date'],
-        location=data['location'],
-        image_url=data.get('image_url'),
-        status=data['status'],
-        user_id=data['user_id'],
-        neighborhood_id=data['neighborhood_id']
-    )
-    db.session.add(new_event)
-    db.session.commit()
-    return jsonify({"message": "Event created successfully"}), 201
-
-# Get all events
-@app.route('/events', methods=['GET'])
-@jwt_required()
-def get_events():
-    events = Event.query.all()
-    return jsonify([event.to_dict() for event in events]), 200
-
-# Update event by ID
-@app.route('/events/<int:event_id>', methods=['PUT'])
-@jwt_required()
-def update_event(event_id):
-    data = request.get_json()
-    event = Event.query.get(event_id)
-    if event:
-        event.title = data.get('title', event.title)
-        event.description = data.get('description', event.description)
-        event.date = data.get('date', event.date)
-        event.location = data.get('location', event.location)
-        event.image_url = data.get('image_url', event.image_url)
-        event.status = data.get('status', event.status)
-        event.admin_approved = data.get('admin_approved', event.admin_approved)
-        event.updated_at = datetime.utcnow()
-        db.session.commit()
-        return jsonify({"message": "Event updated successfully"}), 200
-    else:
-        return jsonify({"message": "Event not found"}), 404
-
-# Delete event by ID
-@app.route('/events/<int:event_id>', methods=['DELETE'])
-@jwt_required()
-def delete_event(event_id):
-    event = Event.query.get(event_id)
-    if event:
-        db.session.delete(event)
-        db.session.commit()
-        return jsonify({"message": "Event deleted successfully"}), 200
-    else:
-        return jsonify({"message": "Event not found"}), 404
-
-# Create news
-@app.route('/news', methods=['POST'])
-@jwt_required()
-def create_news():
-    data = request.get_json()
-    new_news = News(
-        title=data['title'],
-        content=data['content'],
-        image_url=data.get('image_url'),
-        status=data['status'],
-        user_id=data['user_id'],
-        neighborhood_id=data['neighborhood_id']
-    )
-    db.session.add(new_news)
-    db.session.commit()
-    return jsonify({"message": "News created successfully"}), 201
-
-# Get all news
-@app.route('/news', methods=['GET'])
-@jwt_required()
-def get_news():
-    news_items = News.query.all()
-    return jsonify([news.to_dict() for news in news_items]), 200
-
-# Update news by ID
-@app.route('/news/<int:news_id>', methods=['PUT'])
-@jwt_required()
-def update_news(news_id):
-    data = request.get_json()
-    news = News.query.get(news_id)
-    if news:
-        news.title = data.get('title', news.title)
-        news.content = data.get('content', news.content)
-        news.image_url = data.get('image_url', news.image_url)
-        news.status = data.get('status', news.status)
-        news.admin_approved = data.get('admin_approved', news.admin_approved)
-        news.updated_at = datetime.utcnow()
-        db.session.commit()
-        return jsonify({"message": "News updated successfully"}), 200
-    else:
-        return jsonify({"message": "News not found"}), 404
-
-# Delete news by ID
-@app.route('/news/<int:news_id>', methods=['DELETE'])
-@jwt_required()
-def delete_news(news_id):
-    news = News.query.get(news_id)
-    if news:
-        db.session.delete(news)
-        db.session.commit()
-        return jsonify({"message": "News deleted successfully"}), 200
-    else:
-        return jsonify({"message": "News not found"}), 404
+    @jwt_required()
+    def delete(self, news_id):
+        news = News.query.get(news_id)
+        if news:
+            db.session.delete(news)
+            db.session.commit()
+            return jsonify({"message": "News deleted successfully"}), 200
+        else:
+            return jsonify({"message": "News not found"}), 404
 
 if __name__ == '__main__':
     with app.app_context():
