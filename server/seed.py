@@ -20,3 +20,16 @@ def create_fake_data():
             db.session.add(neighborhood)
 
         db.session.commit()
+        
+        
+ # Create fake users
+        for _ in range(10):
+            user = User(
+                name=fake.name(),
+                email=fake.email(),
+                password=fake.password(),
+                neighborhood_id=fake.random_int(min=1, max=5)
+            )
+            db.session.add(user)
+
+        db.session.commit()
