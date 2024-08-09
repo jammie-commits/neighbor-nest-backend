@@ -42,40 +42,66 @@ class UserRegister(Resource):
             return jsonify({"message": "Email already exists"}), 409
 
 # User Login
-@app.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    user = User.query.filter_by(email=data['email']).first()
-    if user and check_password_hash(user.password, data['password']):
-        access_token = create_access_token(identity=user.user_id, expires_delta=timedelta(days=7))
-        return jsonify({"token": access_token}), 200
-    else:
-        return jsonify({"message": "Invalid credentials"}), 401
+class UserLogin(Resource):
+    def post(self):
+        data = request.get_json()
+        user = User.query.filter_by(email=data['email']).first()
+        if user and check_password_hash(user.password, data['password']):
+            access_token = create_access_token(identity=user.user_id, expires_delta=timedelta(days=7))
+            return jsonify({"token": access_token}), 200
+        else:
+            return jsonify({"message": "Invalid credentials"}), 401
 
-# Protected route example
-@app.route('/protected', methods=['GET'])
-@jwt_required()
-def protected():
-    current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
-    return jsonify({"message": f"Hello, {user.name}!"}), 200
-
+class ProtectedResource(Resource):
+    @jwt_required()
+    def get(self):
+        current_user_id = get_jwt_identity()
+        user = User.query.get(current_user_id)
+        return jsonify({"message": f"Hello, {user.name}!"}), 200
+    
 # Get all users (admin only)
-@app.route('/users', methods=['GET'])
-@jwt_required()
-def get_users():
-    users = User.query.all()
-    return jsonify([user.to_dict() for user in users]), 200
 
-# Get user by ID
-@app.route('/users/<int:user_id>', methods=['GET'])
-@jwt_required()
-def get_user(user_id):
-    user = User.query.get(user_id)
-    if user:
-        return jsonify(user.to_dict()), 200
-    else:
-        return jsonify({"message": "User not found"}), 404
+class Users(Resource):
+    @jwt_required()
+    def get(self):
+        users = User.query.all()
+        return jsonify([user.to_dict() for user in users]), 200
+
+class UserByID(Resource):
+    @jwt_required()
+    def get(self, user_id):
+        user = User.query.get(user_id)
+        if user:
+            return jsonify(user.to_dict()), 200
+        else:
+            return jsonify({"message": "User not found"}), 404
+
+    @jwt_required()
+    def put(self, user_id):
+        data = request.get_json()
+        user = User.query.get(user_id)
+        if user:
+            user.name = data.get('name', user.name)
+            user.email = data.get('email', user.email)
+            user.profile_picture_url = data.get('profile_picture_url', user.profile_picture_url)
+            user.is_admin = data.get('is_admin', user.is_admin)
+            user.is_super_admin = data.get('is_super_admin', user.is_super_admin)
+            user.neighborhood_id = data.get('neighborhood_id', user.neighborhood_id)
+            user.updated_at = datetime.utcnow()
+            db.session.commit()
+            return jsonify({"message": "User updated successfully"}), 200
+        else:
+            return jsonify({"message": "User not found"}), 404
+
+    @jwt_required()
+    def delete(self, user_id):
+        user = User.query.get(user_id)
+        if user:
+            db.session.delete(user)
+            db.session.commit()
+            return jsonify({"message": "User deleted successfully"}), 200
+        else:
+            return jsonify({"message": "User not found"}), 404
 
 # Update user by ID
 @app.route('/users/<int:user_id>', methods=['PUT'])
