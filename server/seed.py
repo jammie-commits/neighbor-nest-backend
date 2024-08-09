@@ -33,3 +33,20 @@ def create_fake_data():
             db.session.add(user)
 
         db.session.commit()
+        
+        
+         # Create fake events
+        for _ in range(15):
+            event = Event(
+                title=fake.sentence(nb_words=6),
+                description=fake.text(max_nb_chars=500),
+                date=fake.date_time_this_year(),
+                location=fake.address(),
+                image_url=fake.image_url(),
+                status=fake.random_element(elements=("active", "inactive")),
+                user_id=fake.random_int(min=1, max=10),
+                neighborhood_id=fake.random_int(min=1, max=5)
+            )
+            db.session.add(event)
+
+        db.session.commit()
