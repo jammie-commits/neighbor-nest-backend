@@ -22,7 +22,7 @@ class Home(Resource):
     def get(self):
         return jsonify({"message": "Welcome to Neighbornest"}), 200
     
-# User Registration
+
 class UserRegister(Resource):
     def post(self):
         data = request.get_json()
@@ -41,7 +41,7 @@ class UserRegister(Resource):
             db.session.rollback()
             return jsonify({"message": "Email already exists"}), 409
 
-# User Login
+
 class UserLogin(Resource):
     def post(self):
         data = request.get_json()
@@ -59,7 +59,6 @@ class ProtectedResource(Resource):
         user = User.query.get(current_user_id)
         return jsonify({"message": f"Hello, {user.name}!"}), 200
     
-# Get all users (admin only)
 
 class Users(Resource):
     @jwt_required()
