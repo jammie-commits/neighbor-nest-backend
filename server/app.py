@@ -243,6 +243,20 @@ class NewsByID(Resource):
         else:
             return jsonify({"message": "News not found"}), 404
 
+# Adding resources to the API
+api.add_resource(Home, '/')
+api.add_resource(UserRegister, '/register')
+api.add_resource(UserLogin, '/login')
+api.add_resource(ProtectedResource, '/protected')
+api.add_resource(Users, '/users')
+api.add_resource(UserByID, '/users/<int:user_id>')
+api.add_resource(Neighborhoods, '/neighborhoods')
+api.add_resource(NeighborhoodByID, '/neighborhoods/<int:neighborhood_id>')
+api.add_resource(Events, '/events')
+api.add_resource(EventByID, '/events/<int:event_id>')
+api.add_resource(NewsResource, '/news')
+api.add_resource(NewsByID, '/news/<int:news_id>')
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
