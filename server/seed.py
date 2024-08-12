@@ -1,71 +1,82 @@
-from faker import Faker
-from models import db, User, Neighborhood, Event, News
-from app import app
+from app import app, db
+from models import User, Neighborhood, Event, News, Admin, SuperAdmin, Notification, Dashboard
+from werkzeug.security import generate_password_hash
+from datetime import datetime
+from sqlalchemy import inspect
 
-# Create an instance of the Faker class
-fake = Faker()
+with app.app_context():
+    db.drop_all()
+    db.create_all()
 
-# Create fake data
-def create_fake_data():
-    with app.app_context():
-        db.drop_all()
-        db.create_all()
 
-# Create fake neighborhoods
-        for _ in range(5):
-            neighborhood = Neighborhood(
-                name=fake.city(),
-                description=fake.text(max_nb_chars=200)
-            )
-            db.session.add(neighborhood)
+    # Check if the tables are created
+    inspector = inspect(db.engine)
+    tables = inspector.get_table_names()
+    print(f"Tables in the database: {tables}")
 
-        db.session.commit()
-        
-        
- # Create fake users
-        for _ in range(10):
-            user = User(
-                name=fake.name(),
-                email=fake.email(),
-                password=fake.password(),
-                neighborhood_id=fake.random_int(min=1, max=5)
-            )
-            db.session.add(user)
+    if 'neighborhood' in tables: 
+        # Create neighborhoods
+        neighborhood1 = Neighborhood(name="Downtown", description="Central business district")
+        neighborhood2 = Neighborhood(name="Uptown", description="Residential area with parks")
 
-        db.session.commit()
-        
-        
-         # Create fake events
-        for _ in range(15):
-            event = Event(
-                title=fake.sentence(nb_words=6),
-                description=fake.text(max_nb_chars=500),
-                date=fake.date_time_this_year(),
-                location=fake.address(),
-                image_url=fake.image_url(),
-                status=fake.random_element(elements=("active", "inactive")),
-                user_id=fake.random_int(min=1, max=10),
-                neighborhood_id=fake.random_int(min=1, max=5)
-            )
-            db.session.add(event)
-
-        db.session.commit()
-        
-         # Create fake news
-        for _ in range(10):
-            news_item = News(
-                title=fake.sentence(nb_words=6),
-                content=fake.text(max_nb_chars=1000),
-                image_url=fake.image_url(),
-                status=fake.random_element(elements=("published", "draft")),
-                user_id=fake.random_int(min=1, max=10),
-                neighborhood_id=fake.random_int(min=1, max=5)
-            )
-            db.session.add(news_item)
-
+        db.session.add_all([neighborhood1, neighborhood2])
         db.session.commit()
 
-        print("Fake data created successfully!")
+        # Create users
+        user1 = User(
+            name="John Doe",
+            email="john@example.com",
+            password=generate_password_hash("password123", method='sha256'),
+            neighborhood_id=neighborhood1.neighborhood_id
+        )
+        user2 = User(
+            name="Jane Smith",
+            email="jane@example.com",
+            password=generate_password_hash("password456", method='sha256'),
+            neighborhood_id=neighborhood2.neighborhood_id
+        )
 
-if __name__ == "__main__":
-    create_fake_data()
+        db.session.add_all([user1, user2])
+        db.session.commit()
+
+        # Create events
+        event1 = Event(
+            title="Community Cleanup",
+            description="Join us for a neighborhood cleanup.",
+            date=datetime(2024, 8, 15, 10, 0),
+            location="Downtown Park",
+            status="Scheduled",
+            user_id=user1.user_id,
+            neighborhood_id=neighborhood1.neighborhood_id
+        )
+
+        db.session.add(event1)
+        db.session.commit()
+
+        # Create news
+        news1 = News(
+            title="New Community Center",
+            content="A new community center is opening in Uptown.",
+            status="Published",
+            user_id=user2.user_id,
+            neighborhood_id=neighborhood2.neighborhood_id
+        )
+
+        db.session.add(news1)
+        db.session.commit()
+
+        # Create admin and super admin
+        admin1 = Admin(
+            user_id=user1.user_id,
+            neighborhood_id=neighborhood1.neighborhood_id
+        )
+        super_admin1 = SuperAdmin(
+            user_id=user2.user_id
+        )
+
+        db.session.add_all([admin1, super_admin1])
+        db.session.commit()
+
+        print("Database seeded successfully!")
+    else:
+        print("The 'neighborhood' table does not exist. Please check your database setup.")
