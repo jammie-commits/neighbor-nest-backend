@@ -9,9 +9,5 @@ migrate = Migrate(app, db)
 # Define the CLI group
 cli = FlaskGroup(app)
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     cli()
-
-
-
