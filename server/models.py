@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_serializer import SerializerMixin
+from app import db
 
 db = SQLAlchemy()
 
@@ -18,7 +19,7 @@ class User(db.Model, SerializerMixin):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    neighborhood = db.relationship('Neighborhood', backref='users', lazy=True)
+    neighborhood = db.relationship('Neighborhood', backref='residents', lazy=True)
     posts = db.relationship('News', backref='author', lazy=True)
     events = db.relationship('Event', backref='organizer', lazy=True)
     notifications = db.relationship('Notification', backref='recipient', lazy=True)
@@ -45,7 +46,6 @@ class Neighborhood(db.Model, SerializerMixin):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    users = db.relationship('User', backref='neighborhood', lazy=True)
     events = db.relationship('Event', backref='neighborhood', lazy=True)
     news = db.relationship('News', backref='neighborhood', lazy=True)
 
