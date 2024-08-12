@@ -15,6 +15,14 @@ class User(db.Model):
     neighborhood_id = db.Column(db.Integer, db.ForeignKey('neighborhoods.neighborhood_id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    neighborhood = db.relationship('Neighborhood', backref=db.backref('users', lazy=True))
+    events = db.relationship('Event', backref='user', lazy=True)
+    news = db.relationship('News', backref='user', lazy=True)
+    admin = db.relationship('Admin', uselist=False, backref='user')
+    super_admin = db.relationship('SuperAdmin', uselist=False, backref='user')
+    notifications = db.relationship('Notification', backref='user', lazy=True)
+    dashboard = db.relationship('Dashboard', uselist=False, backref='user')
     
     def to_dict(self):
         return {
@@ -36,6 +44,10 @@ class Neighborhood(db.Model):
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    events = db.relationship('Event', backref='neighborhood', lazy=True)
+    news = db.relationship('News', backref='neighborhood', lazy=True)
+    admins = db.relationship('Admin', backref='neighborhood', lazy=True)
     
     def to_dict(self):
         return {
@@ -60,7 +72,9 @@ class Event(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     neighborhood_id = db.Column(db.Integer, db.ForeignKey('neighborhoods.neighborhood_id'), nullable=False)
     admin_approved = db.Column(db.Boolean, default=False)
-    
+
+    notifications = db.relationship('Notification', backref='event', lazy=True)
+
     def to_dict(self):
         return {
             'event_id': self.event_id,
@@ -89,7 +103,9 @@ class News(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     neighborhood_id = db.Column(db.Integer, db.ForeignKey('neighborhoods.neighborhood_id'), nullable=False)
     admin_approved = db.Column(db.Boolean, default=False)
-    
+
+    notifications = db.relationship('Notification', backref='news', lazy=True)
+
     def to_dict(self):
         return {
             'news_id': self.news_id,
@@ -111,7 +127,7 @@ class Admin(db.Model):
     neighborhood_id = db.Column(db.Integer, db.ForeignKey('neighborhoods.neighborhood_id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     def to_dict(self):
         return {
             'admin_id': self.admin_id,
@@ -127,7 +143,7 @@ class SuperAdmin(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), unique=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     def to_dict(self):
         return {
             'super_admin_id': self.super_admin_id,
@@ -145,7 +161,7 @@ class Notification(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     event_id = db.Column(db.Integer, db.ForeignKey('events.event_id'))
     news_id = db.Column(db.Integer, db.ForeignKey('news.news_id'))
-    
+
     def to_dict(self):
         return {
             'notification_id': self.notification_id,
@@ -162,7 +178,7 @@ class Dashboard(db.Model):
     dashboard_id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), unique=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     def to_dict(self):
         return {
             'dashboard_id': self.dashboard_id,
