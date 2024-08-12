@@ -1,71 +1,85 @@
-from faker import Faker
+from app import app  # Import the app object
 from models import db, User, Neighborhood, Event, News
-from app import app
+from datetime import datetime
+from werkzeug.security import generate_password_hash
 
-# Create an instance of the Faker class
-fake = Faker()
-
-# Create fake data
-def create_fake_data():
+def seed_database():
     with app.app_context():
-        db.drop_all()
+
+        # Create tables if they don't exist
         db.create_all()
 
-# Create fake neighborhoods
-        for _ in range(5):
-            neighborhood = Neighborhood(
-                name=fake.city(),
-                description=fake.text(max_nb_chars=200)
-            )
-            db.session.add(neighborhood)
-
-        db.session.commit()
-        
-        
- # Create fake users
-        for _ in range(10):
-            user = User(
-                name=fake.name(),
-                email=fake.email(),
-                password=fake.password(),
-                neighborhood_id=fake.random_int(min=1, max=5)
-            )
-            db.session.add(user)
-
-        db.session.commit()
-        
-        
-         # Create fake events
-        for _ in range(15):
-            event = Event(
-                title=fake.sentence(nb_words=6),
-                description=fake.text(max_nb_chars=500),
-                date=fake.date_time_this_year(),
-                location=fake.address(),
-                image_url=fake.image_url(),
-                status=fake.random_element(elements=("active", "inactive")),
-                user_id=fake.random_int(min=1, max=10),
-                neighborhood_id=fake.random_int(min=1, max=5)
-            )
-            db.session.add(event)
-
-        db.session.commit()
-        
-         # Create fake news
-        for _ in range(10):
-            news_item = News(
-                title=fake.sentence(nb_words=6),
-                content=fake.text(max_nb_chars=1000),
-                image_url=fake.image_url(),
-                status=fake.random_element(elements=("published", "draft")),
-                user_id=fake.random_int(min=1, max=10),
-                neighborhood_id=fake.random_int(min=1, max=5)
-            )
-            db.session.add(news_item)
-
+        # Clear existing data (optional)
+        db.session.query(User).delete()
+        db.session.query(Neighborhood).delete()
+        db.session.query(Event).delete()
+        db.session.query(News).delete()
         db.session.commit()
 
-        print("Fake data created successfully!")
+        # Create neighborhoods first as users and events depend on them
+        neighborhoods = [
+            {
+                "neighborhood_id": 1,
+                "name": "Neighborhood 1",
+                "description": "Description 1"
+            },
+            # ... add more neighborhoods ...
+        ]
+        db.session.add_all([Neighborhood(**neighborhood) for neighborhood in neighborhoods])
+        db.session.commit()
 
-if __name__ == "__main__":
-    create_fake_data()
+        # Create users
+        users = [
+            {
+                "user_id": 1,
+                "name": "user1",
+                "email": "user1@example.com",  
+                "password": generate_password_hash("password1"),  
+                "profile_picture_url": "https://example.com/image1.jpg",
+                "is_admin": False,
+                "is_super_admin": False,
+                "neighborhood_id": 1,
+            },
+            # ... add more users ...
+        ]
+        db.session.add_all([User(**user) for user in users])
+        db.session.commit()
+
+        # Create events
+        events = [
+            {
+                "event_id": 1,
+                "title": "Event 1",
+                "description": "Description 1",
+                "date": datetime.now(),
+                "location": "Location 1",
+                "image_url": "https://example.com/image1.jpg",
+                "status": "Open",
+                "admin_approved": True,
+                "user_id": 1,
+                "neighborhood_id": 1
+            },
+            # ... add more events ...
+        ]
+        db.session.add_all([Event(**event) for event in events])
+        db.session.commit()
+
+        # Create news
+        news = [
+            {
+                "news_id": 1,
+                "title": "News 1",
+                "content": "Content 1",
+                "image_url": "https://example.com/image1.jpg",
+                "status": "Open",
+                "admin_approved": True,
+                "user_id": 1,
+                "neighborhood_id": 1
+            },
+            # ... add more news ...
+        ]
+        db.session.add_all([News(**new) for new in news])
+        db.session.commit()
+
+if __name__ == '__main__':
+    seed_database()
