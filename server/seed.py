@@ -1,4 +1,3 @@
-
 from app import app  # Import the app object
 from models import db, User, Neighborhood, Event, News
 from datetime import datetime

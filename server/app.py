@@ -1,12 +1,13 @@
 from datetime import datetime, timedelta
 from sqlite3 import IntegrityError
-from flask import Flask, request
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
+from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity 
 from flask_restful import Api, Resource
-from models import User, Neighborhood, Event, News
+from models import db, User, Neighborhood, Event, News
 
 app = Flask(__name__)
 
@@ -24,10 +25,13 @@ db.init_app(app)
 migrate = Migrate(app, db)
 api = Api(app)
 
+# Resources
+
 class Home(Resource):
     def get(self):
-        return {"message": "Welcome to Neighbornest"}, 200
+        return ({"message": "Welcome to Neighbornest"}), 200
     
+
 class UserRegister(Resource):
     def post(self):
         data = request.get_json()
@@ -41,10 +45,11 @@ class UserRegister(Resource):
         try:
             db.session.add(new_user)
             db.session.commit()
-            return {"message": "User registered successfully"}, 201
+            return ({"message": "User registered successfully"}), 201
         except IntegrityError:
             db.session.rollback()
-            return {"message": "Email already exists"}, 409
+            return ({"message": "Email already exists"}), 409
+
 
 class UserLogin(Resource):
     def post(self):
@@ -52,31 +57,32 @@ class UserLogin(Resource):
         user = User.query.filter_by(email=data['email']).first()
         if user and check_password_hash(user.password, data['password']):
             access_token = create_access_token(identity=user.user_id, expires_delta=timedelta(days=7))
-            return {"token": access_token}, 200
+            return ({"token": access_token}), 200
         else:
-            return {"message": "Invalid credentials"}, 401
+            return ({"message": "Invalid credentials"}), 401
 
 class ProtectedResource(Resource):
     # @jwt_required()
     def get(self):
         current_user_id = get_jwt_identity()
         user = User.query.get(current_user_id)
-        return {"message": f"Hello, {user.name}!"}, 200
+        return ({"message": f"Hello, {user.name}!"}), 200
     
+
 class Users(Resource):
     # @jwt_required()
     def get(self):
         users = User.query.all()
-        return [user.to_dict() for user in users], 200
+        return ([user.to_dict() for user in users]), 200
 
 class UserByID(Resource):
     # @jwt_required()
     def get(self, user_id):
         user = User.query.get(user_id)
         if user:
-            return user.to_dict(), 200
+            return (user.to_dict()), 200
         else:
-            return {"message": "User not found"}, 404
+            return ({"message": "User not found"}), 404
 
     # @jwt_required()
     def put(self, user_id):
@@ -91,9 +97,9 @@ class UserByID(Resource):
             user.neighborhood_id = data.get('neighborhood_id', user.neighborhood_id)
             user.updated_at = datetime.utcnow()  # Fix: Removed quotes
             db.session.commit()
-            return {"message": "User updated successfully"}, 200
+            return ({"message": "User updated successfully"}), 200
         else:
-            return {"message": "User not found"}, 404
+            return ({"message": "User not found"}), 404
 
     # @jwt_required()
     def delete(self, user_id):
@@ -101,9 +107,9 @@ class UserByID(Resource):
         if user:
             db.session.delete(user)
             db.session.commit()
-            return {"message": "User deleted successfully"}, 200
+            return ({"message": "User deleted successfully"}), 200
         else:
-            return {"message": "User not found"}, 404
+            return ({"message": "User not found"}), 404
         
 class Neighborhoods(Resource):
     # @jwt_required()
@@ -115,12 +121,12 @@ class Neighborhoods(Resource):
         )
         db.session.add(new_neighborhood)
         db.session.commit()
-        return {"message": "Neighborhood created successfully"}, 201
+        return ({"message": "Neighborhood created successfully"}), 201
 
     # @jwt_required()
     def get(self):
         neighborhoods = Neighborhood.query.all()
-        return [neighborhood.to_dict() for neighborhood in neighborhoods], 200
+        return ([neighborhood.to_dict() for neighborhood in neighborhoods]), 200
     
 class NeighborhoodByID(Resource):
     # @jwt_required()
@@ -132,9 +138,9 @@ class NeighborhoodByID(Resource):
             neighborhood.description = data.get('description', neighborhood.description)
             neighborhood.updated_at = datetime.utcnow()  # Fix: Removed quotes
             db.session.commit()
-            return {"message": "Neighborhood updated successfully"}, 200
+            return ({"message": "Neighborhood updated successfully"}), 200
         else:
-            return {"message": "Neighborhood not found"}, 404
+            return ({"message": "Neighborhood not found"}), 404
 
     # @jwt_required()
     def delete(self, neighborhood_id):
@@ -142,10 +148,10 @@ class NeighborhoodByID(Resource):
         if neighborhood:
             db.session.delete(neighborhood)
             db.session.commit()
-            return {"message": "Neighborhood deleted successfully"}, 200
+            return ({"message": "Neighborhood deleted successfully"}), 200
         else:
-            return {"message": "Neighborhood not found"}, 404
-        
+            return ({"message": "Neighborhood not found"}), 404
+
 class Events(Resource):
     # @jwt_required()
     def post(self):
@@ -162,12 +168,12 @@ class Events(Resource):
         )
         db.session.add(new_event)
         db.session.commit()
-        return {"message": "Event created successfully"}, 201
+        return ({"message": "Event created successfully"}), 201
 
     # @jwt_required()
     def get(self):
         events = Event.query.all()
-        return [event.to_dict() for event in events], 200
+        return ([event.to_dict() for event in events]), 200
 
 class EventByID(Resource):
     # @jwt_required()
@@ -184,9 +190,9 @@ class EventByID(Resource):
             event.admin_approved = data.get('admin_approved', event.admin_approved)
             event.updated_at = datetime.utcnow()  # Fix: Removed quotes
             db.session.commit()
-            return {"message": "Event updated successfully"}, 200
+            return ({"message": "Event updated successfully"}), 200
         else:
-            return {"message": "Event not found"}, 404
+            return ({"message": "Event not found"}), 404
 
     # @jwt_required()
     def delete(self, event_id):
@@ -194,9 +200,9 @@ class EventByID(Resource):
         if event:
             db.session.delete(event)
             db.session.commit()
-            return {"message": "Event deleted successfully"}, 200
+            return ({"message": "Event deleted successfully"}), 200
         else:
-            return {"message": "Event not found"}, 404
+            return ({"message": "Event not found"}), 404
 
 class NewsResource(Resource):
     # @jwt_required()
@@ -212,12 +218,12 @@ class NewsResource(Resource):
         )
         db.session.add(new_news)
         db.session.commit()
-        return {"message": "News created successfully"}, 201
+        return ({"message": "News created successfully"}), 201
 
     @jwt_required()
     def get(self):
         news_items = News.query.all()
-        return [news.to_dict() for news in news_items], 200
+        return ([news.to_dict() for news in news_items]), 200
 
 class NewsByID(Resource):
     # @jwt_required()
@@ -232,9 +238,9 @@ class NewsByID(Resource):
             news.admin_approved = data.get('admin_approved', news.admin_approved)
             news.updated_at = datetime.utcnow()  # Fix: Removed quotes
             db.session.commit()
-            return {"message": "News updated successfully"}, 200
+            return ({"message": "News updated successfully"}), 200
         else:
-            return {"message": "News not found"}, 404
+            return ({"message": "News not found"}), 404
 
     # @jwt_required()
     def delete(self, news_id):
@@ -242,9 +248,9 @@ class NewsByID(Resource):
         if news:
             db.session.delete(news)
             db.session.commit()
-            return {"message": "News deleted successfully"}, 200
+            return ({"message": "News deleted successfully"}), 200
         else:
-            return {"message": "News not found"}, 404
+            return ({"message": "News not found"}), 404
 
 # Adding resources to the API
 api.add_resource(Home, '/')
@@ -263,4 +269,4 @@ api.add_resource(NewsByID, '/news/<int:news_id>')
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(port=5000, debug=True)
+        app.run(port=5000, debug=True)
