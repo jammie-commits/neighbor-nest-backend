@@ -16,11 +16,14 @@ import UserDetail from './components/UserDetail';
 import Users from './components/Users';
 import './App.css'
 import NotFound from './pages/NotFound';
+import Layout from './components/Layout'; // Import the Layout component
+
 
 function App() {
   return (
     <AuthProvider>
       <Router>
+        <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
@@ -37,6 +40,8 @@ function App() {
           <Route path="/navbar" element={<Navbar />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </Layout>
+
       </Router>
     </AuthProvider>
   );

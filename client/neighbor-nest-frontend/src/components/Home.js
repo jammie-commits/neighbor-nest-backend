@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom'; // Import Link from react-router-dom
-import { api } from '../api/api'; // Remove setAuthHeader if not used
+import { api } from '../api/api';
+import Navbar from './Navbar';
 
 const Home = () => {
     const [events, setEvents] = useState([]);
@@ -20,16 +21,16 @@ const Home = () => {
 
     return (
         <div className="min-h-screen bg-cover bg-center" style={{ backgroundImage: "url('/path-to-your-image.jpg')" }}>
-            <header className="bg-gray-900 bg-opacity-70 p-4">
-                <div className="container mx-auto flex justify-between items-center">
-                    <h1 className="text-white text-2xl font-bold">Event Management</h1>
-                    <div>
-                        <Link to="/login" className="text-white mr-4 hover:underline">Login</Link>
-                        <Link to="/register" className="text-white hover:underline">Register</Link>
-                    </div>
-                </div>
-            </header>
+            {/* Navbar Component */}
+            {/* <Navbar /> */}
 
+            {/* Welcoming Section */}
+            <section className="bg-gray-900 bg-opacity-70 p-8 text-center text-white">
+                <h1 className="text-4xl font-bold mb-4">Welcome to Our Community</h1>
+                <p className="text-xl">Explore the latest events happening in your neighborhood!</p>
+            </section>
+
+            {/* Events Gallery */}
             <section className="container mx-auto p-8">
                 <h2 className="text-3xl font-bold text-white text-center mb-8">Past Events</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
