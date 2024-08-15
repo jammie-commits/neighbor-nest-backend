@@ -12,12 +12,16 @@ from models import db, User, Neighborhood, Event, News
 app = Flask(__name__)
 
 # JWT Configuration
-# app.config["JWT_SECRET_KEY"] = "kdjhhgjdxkjfjndjbtkdnjbj4fg"
-# jwt = JWTManager(app)
+app.config["JWT_SECRET_KEY"] = "kdjhhgjdxkjfjndjbtkdnjbj4fg"
+jwt = JWTManager(app)
+
 
 # Database Configuration
 app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///app.db'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config['JWT_TOKEN_LOCATION'] = ['headers']
+app.config['JWT_BLACKLIST_ENABLED'] = True
+app.config['PROPAGATE_EXCEPTIONS'] = True
 
 # CORS and Migrations
 CORS(app)
@@ -62,21 +66,33 @@ class UserLogin(Resource):
             return ({"message": "Invalid credentials"}), 401
 
 class ProtectedResource(Resource):
-    # @jwt_required()
+    @jwt_required()
     def get(self):
-        current_user_id = get_jwt_identity()
-        user = User.query.get(current_user_id)
-        return ({"message": f"Hello, {user.name}!"}), 200
+        # Get the identity of the current user from the JWT
+        current_user = get_jwt_identity()
+        
+        # Retrieve the user from the database
+        user = User.query.get(current_user)
+        
+        if not user:
+            # If the user doesn't exist, return a 404 error
+            return {"status": "error", "message": "User not found"}, 404
+        
+        # If the user exists, return a success message with the user's name
+        return {
+            "status": "success",
+            "message": f"Hello, {user.name}!"
+        }, 200
     
 
 class Users(Resource):
-    # @jwt_required()
+    @jwt_required()
     def get(self):
         users = User.query.all()
         return ([user.to_dict() for user in users]), 200
 
 class UserByID(Resource):
-    # @jwt_required()
+    @jwt_required()
     def get(self, user_id):
         user = User.query.get(user_id)
         if user:
@@ -84,7 +100,7 @@ class UserByID(Resource):
         else:
             return ({"message": "User not found"}), 404
 
-    # @jwt_required()
+    @jwt_required()
     def put(self, user_id):
         data = request.get_json()
         user = User.query.get(user_id)
@@ -95,13 +111,13 @@ class UserByID(Resource):
             user.is_admin = data.get('is_admin', user.is_admin)
             user.is_super_admin = data.get('is_super_admin', user.is_super_admin)
             user.neighborhood_id = data.get('neighborhood_id', user.neighborhood_id)
-            user.updated_at = datetime.utcnow()  # Fix: Removed quotes
+            user.updated_at = datetime()  
             db.session.commit()
             return ({"message": "User updated successfully"}), 200
         else:
             return ({"message": "User not found"}), 404
 
-    # @jwt_required()
+    @jwt_required()
     def delete(self, user_id):
         user = User.query.get(user_id)
         if user:
@@ -112,7 +128,7 @@ class UserByID(Resource):
             return ({"message": "User not found"}), 404
         
 class Neighborhoods(Resource):
-    # @jwt_required()
+    @jwt_required()
     def post(self):
         data = request.get_json()
         new_neighborhood = Neighborhood(
@@ -123,26 +139,26 @@ class Neighborhoods(Resource):
         db.session.commit()
         return ({"message": "Neighborhood created successfully"}), 201
 
-    # @jwt_required()
+    @jwt_required()
     def get(self):
         neighborhoods = Neighborhood.query.all()
         return ([neighborhood.to_dict() for neighborhood in neighborhoods]), 200
     
 class NeighborhoodByID(Resource):
-    # @jwt_required()
+    @jwt_required()
     def put(self, neighborhood_id):
         data = request.get_json()
         neighborhood = Neighborhood.query.get(neighborhood_id)
         if neighborhood:
             neighborhood.name = data.get('name', neighborhood.name)
             neighborhood.description = data.get('description', neighborhood.description)
-            neighborhood.updated_at = datetime.utcnow()  # Fix: Removed quotes
+            neighborhood.updated_at = datetime()  
             db.session.commit()
             return ({"message": "Neighborhood updated successfully"}), 200
         else:
             return ({"message": "Neighborhood not found"}), 404
 
-    # @jwt_required()
+    @jwt_required()
     def delete(self, neighborhood_id):
         neighborhood = Neighborhood.query.get(neighborhood_id)
         if neighborhood:
@@ -153,7 +169,7 @@ class NeighborhoodByID(Resource):
             return ({"message": "Neighborhood not found"}), 404
 
 class Events(Resource):
-    # @jwt_required()
+    @jwt_required()
     def post(self):
         data = request.get_json()
         new_event = Event(
@@ -170,13 +186,13 @@ class Events(Resource):
         db.session.commit()
         return ({"message": "Event created successfully"}), 201
 
-    # @jwt_required()
+    @jwt_required()
     def get(self):
         events = Event.query.all()
         return ([event.to_dict() for event in events]), 200
 
 class EventByID(Resource):
-    # @jwt_required()
+    @jwt_required()
     def put(self, event_id):
         data = request.get_json()
         event = Event.query.get(event_id)
@@ -188,13 +204,13 @@ class EventByID(Resource):
             event.image_url = data.get('image_url', event.image_url)
             event.status = data.get('status', event.status)
             event.admin_approved = data.get('admin_approved', event.admin_approved)
-            event.updated_at = datetime.utcnow()  # Fix: Removed quotes
+            event.updated_at = datetime()  
             db.session.commit()
             return ({"message": "Event updated successfully"}), 200
         else:
             return ({"message": "Event not found"}), 404
 
-    # @jwt_required()
+    @jwt_required()
     def delete(self, event_id):
         event = Event.query.get(event_id)
         if event:
@@ -205,7 +221,7 @@ class EventByID(Resource):
             return ({"message": "Event not found"}), 404
 
 class NewsResource(Resource):
-    # @jwt_required()
+    @jwt_required()
     def post(self):
         data = request.get_json()
         new_news = News(
@@ -226,7 +242,7 @@ class NewsResource(Resource):
         return ([news.to_dict() for news in news_items]), 200
 
 class NewsByID(Resource):
-    # @jwt_required()
+    @jwt_required()
     def put(self, news_id):
         data = request.get_json()
         news = News.query.get(news_id)
@@ -236,13 +252,13 @@ class NewsByID(Resource):
             news.image_url = data.get('image_url', news.image_url)
             news.status = data.get('status', news.status)
             news.admin_approved = data.get('admin_approved', news.admin_approved)
-            news.updated_at = datetime.utcnow()  # Fix: Removed quotes
+            news.updated_at = datetime()  
             db.session.commit()
             return ({"message": "News updated successfully"}), 200
         else:
             return ({"message": "News not found"}), 404
 
-    # @jwt_required()
+    @jwt_required()
     def delete(self, news_id):
         news = News.query.get(news_id)
         if news:

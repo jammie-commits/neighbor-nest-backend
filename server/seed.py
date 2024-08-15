@@ -6,10 +6,10 @@ from werkzeug.security import generate_password_hash
 def seed_database():
     with app.app_context():
 
-        # Create tables if they don't exist
+        # Create tables 
         db.create_all()
 
-        # Clear existing data (optional)
+        # Clear existing data 
         db.session.query(User).delete()
         db.session.query(Neighborhood).delete()
         db.session.query(Event).delete()
@@ -23,7 +23,7 @@ def seed_database():
                 "name": "Neighborhood 1",
                 "description": "Description 1"
             },
-            # ... add more neighborhoods ...
+            
         ]
         db.session.add_all([Neighborhood(**neighborhood) for neighborhood in neighborhoods])
         db.session.commit()
@@ -40,7 +40,7 @@ def seed_database():
                 "is_super_admin": False,
                 "neighborhood_id": 1,
             },
-            # ... add more users ...
+            
         ]
         db.session.add_all([User(**user) for user in users])
         db.session.commit()
@@ -59,7 +59,7 @@ def seed_database():
                 "user_id": 1,
                 "neighborhood_id": 1
             },
-            # ... add more events ...
+            
         ]
         db.session.add_all([Event(**event) for event in events])
         db.session.commit()
@@ -76,7 +76,7 @@ def seed_database():
                 "user_id": 1,
                 "neighborhood_id": 1
             },
-            # ... add more news ...
+           
         ]
         db.session.add_all([News(**new) for new in news])
         db.session.commit()
