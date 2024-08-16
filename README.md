@@ -92,7 +92,6 @@ Feel free to fork this project and submit pull requests. For major changes, plea
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
-```
 
 ## Contact
 
@@ -109,3 +108,6 @@ For any questions or suggestions, feel free to reach out to us via:
 
 **Email:** jay.mbugua.ph@gmail.com
 **GitHub:** (https://github.com/jammie-commits))
+
+**Email:** princess.mumbi@student.moringaschool.com
+**GitHub:** https://github.com/cessaneh
